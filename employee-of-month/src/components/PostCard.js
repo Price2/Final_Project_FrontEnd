@@ -15,6 +15,7 @@ import {
 import { ThumbUp, ChatBubbleOutline, Share, Send } from '@mui/icons-material';
 import Certificate from './Certificate'
 import Footer from './Footer';
+import HallOfFame from './HallOfFame';
 const PostCard = ({ post }) => {
   const [isCommenting, setCommenting] = useState(false);
   const [commentText, setCommentText] = useState('');
@@ -130,7 +131,8 @@ const PostCard = ({ post }) => {
           </Grid>
         </CardContent>
       </Collapse>
-    </Card>
+      </Card>
+      <HallOfFame/>
     <Footer/>
     
     </>
