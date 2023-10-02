@@ -1,6 +1,6 @@
 import React from 'react';
-import { CssBaseline, Container, Grid } from '@mui/material';
 import PostCard from './components/PostCard';
+import Navbar from './components/Navbar'; // Import your Navbar component
 
 // Sample post data
 const posts = [
@@ -16,6 +16,7 @@ const posts = [
         user: {
           name: 'Alice',
           profilePicture: 'https://example.com/avatar2.jpg',
+          content:"Test"
         },
       },
       // Add more comments here
@@ -27,6 +28,7 @@ const posts = [
 function App() {
   return (
     <div>
+      <Navbar/>
       {posts.map((post) => (
         <PostCard key={post.id} post={post} />
       ))}
