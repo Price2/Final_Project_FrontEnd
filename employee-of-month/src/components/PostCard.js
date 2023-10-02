@@ -14,6 +14,7 @@ import {
 } from '@mui/material';
 import { ThumbUp, ChatBubbleOutline, Share, Send } from '@mui/icons-material';
 import Certificate from './Certificate'
+import Footer from './Footer';
 const PostCard = ({ post }) => {
   const [isCommenting, setCommenting] = useState(false);
   const [commentText, setCommentText] = useState('');
@@ -46,6 +47,7 @@ const PostCard = ({ post }) => {
   };
 
   return (
+    <>
     <Card style={{ maxWidth: '850px', margin: '0 auto', marginBottom: '16px' }}>
       <CardHeader
         avatar={<Avatar aria-label="user-avatar" src={post.user.profilePicture} />}
@@ -129,6 +131,9 @@ const PostCard = ({ post }) => {
         </CardContent>
       </Collapse>
     </Card>
+    <Footer/>
+    
+    </>
   );
 };
 
