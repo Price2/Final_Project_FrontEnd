@@ -32,7 +32,7 @@ function App() {
       <BrowserRouter>
 
         <Routes>
-          <Route exact path="/" element={
+          <Route path="/" element={
             <>
               <Navbar />
               {posts.map((post) => (
@@ -43,7 +43,8 @@ function App() {
             </>
           }>
           </Route>
-          <Route path="profile" element={
+
+          <Route path="/profile" element={
             <>
               <Navbar />
               <Profile />
@@ -52,7 +53,6 @@ function App() {
           }>
           </Route>
           <Route path="/login" element={
-
             <>
               <Navbar />
               <Login />
@@ -61,6 +61,10 @@ function App() {
           }>
 
           </Route>
+
+
+
+
         </Routes>
       </BrowserRouter>
     </>

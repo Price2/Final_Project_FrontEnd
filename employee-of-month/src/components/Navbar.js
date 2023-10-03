@@ -12,6 +12,7 @@ import Button from '@mui/material/Button';
 import Tooltip from '@mui/material/Tooltip';
 import MenuItem from '@mui/material/MenuItem';
 import AdbIcon from '@mui/icons-material/Adb';
+import { Link, useNavigate } from 'react-router-dom';
 
 const pages = ['Home'];
 const settings = ['Profile', 'Dashboard', 'Logout'];
@@ -19,6 +20,8 @@ const settings = ['Profile', 'Dashboard', 'Logout'];
 function ResponsiveAppBar() {
   const [anchorElNav, setAnchorElNav] = React.useState(null);
   const [anchorElUser, setAnchorElUser] = React.useState(null);
+  const navigate = useNavigate();
+
 
   const handleOpenNavMenu = (event) => {
     setAnchorElNav(event.currentTarget);
@@ -28,6 +31,7 @@ function ResponsiveAppBar() {
   };
 
   const handleCloseNavMenu = () => {
+    navigate("/");
     setAnchorElNav(null);
   };
 
@@ -39,13 +43,13 @@ function ResponsiveAppBar() {
     <AppBar position="static">
       <Container maxWidth="xl">
         <Toolbar disableGutters>
-            
+
           <AdbIcon sx={{ display: { xs: 'none', md: 'flex' }, mr: 1 }} />
           <Typography
             variant="h6"
             noWrap
             component="a"
-            href="#app-bar-with-responsive-menu"
+            href="/"
             sx={{
               mr: 2,
               display: { xs: 'none', md: 'flex' },
@@ -89,9 +93,11 @@ function ResponsiveAppBar() {
               }}
             >
               {pages.map((page) => (
+              
                 <MenuItem key={page} onClick={handleCloseNavMenu}>
-                  <Typography textAlign="center">{page}</Typography>
-                </MenuItem>
+                    <Typography textAlign="center">{page}</Typography>
+                  </MenuItem>
+              
               ))}
             </Menu>
           </Box>
@@ -150,9 +156,16 @@ function ResponsiveAppBar() {
             >
               {settings.map((setting) => (
                 <MenuItem key={setting} onClick={handleCloseUserMenu}>
-                  <Typography textAlign="center">{setting}</Typography>
+                  {setting === 'Profile' ? (
+                    <Link to="/profile" sx={{ textDecoration: "none" }}>
+                      <Typography textAlign="center">{setting}</Typography>
+                    </Link>
+                  ) : (
+                    <Typography textAlign="center">{setting}</Typography>
+                  )}
                 </MenuItem>
               ))}
+
             </Menu>
           </Box>
         </Toolbar>
