@@ -1,7 +1,10 @@
 import React from 'react';
 import PostCard from './components/PostCard';
 import Navbar from './components/Navbar'; // Import your Navbar component
-
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import Footer from './components/Footer';
+import Profile from './components/Profile';
+import Login from './components/Login';
 // Sample post data
 const posts = [
   {
@@ -16,23 +19,51 @@ const posts = [
         user: {
           name: 'Alice',
           profilePicture: 'https://example.com/avatar2.jpg',
-          content:"Test"
+          content: "Test"
         },
       },
-      // Add more comments here
     ],
   },
-  // Add more posts here
 ];
 
 function App() {
   return (
-    <div>
-      <Navbar/>
-      {posts.map((post) => (
-        <PostCard key={post.id} post={post} />
-      ))}
-    </div>
+    <>
+      <BrowserRouter>
+
+        <Routes>
+          <Route exact path="/" element={
+            <>
+              <Navbar />
+              {posts.map((post) => (
+                <PostCard key={post.id} post={post} />
+              ))}
+              <Footer />
+
+            </>
+          }>
+          </Route>
+          <Route path="profile" element={
+            <>
+              <Navbar />
+              <Profile />
+              <Footer />
+            </>
+          }>
+          </Route>
+          <Route path="/login" element={
+
+            <>
+              <Navbar />
+              <Login />
+              <Footer />
+            </>
+          }>
+
+          </Route>
+        </Routes>
+      </BrowserRouter>
+    </>
   );
 }
 
