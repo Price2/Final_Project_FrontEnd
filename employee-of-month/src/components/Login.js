@@ -13,6 +13,9 @@ import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import Typography from '@mui/material/Typography';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { Container } from '@mui/material';
+import Cookies from 'js-cookie';
+import { useNavigate } from 'react-router-dom';
+import { useAppContext } from './Authenticate';
 
 function Copyright(props) {
   return (
@@ -32,6 +35,12 @@ function Copyright(props) {
 const defaultTheme = createTheme();
 
 export default function SignInSide() {
+
+  const { cookieValue, setCookieValue } = useAppContext();
+  const navigate = useNavigate();
+
+
+
   const handleSubmit = (event) => {
     event.preventDefault();
     const data = new FormData(event.currentTarget);
@@ -42,6 +51,10 @@ export default function SignInSide() {
       email: data.get('email'),
       password: data.get('password'),
     });
+    Cookies.set('JWTToken', 'de7fa7f88a87dh8jk8bnxz99978qweqdhdfqiqodqw7e6564545', { expires: 7 });
+    setCookieValue({'JWTToken': 'de7fa7f88a87dh8jk8bnxz99978qweqdhdfqiqodqw7e6564545'})
+
+    navigate('/')
   };
 
   return (

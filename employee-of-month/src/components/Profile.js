@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Container, Grid, Card, CardContent, CardMedia, Typography, Button, Breadcrumbs, Link, List, ListItem, ListItemText, Divider, Box, LinearProgress, Paper } from '@mui/material';
+import { Container, Grid, Card, CardContent, CardMedia, Typography, Button, Breadcrumbs, Link, List, ListItem, Divider, Box, LinearProgress } from '@mui/material';
 import {
     Facebook as FacebookIcon,
     GitHub as GitHubIcon,

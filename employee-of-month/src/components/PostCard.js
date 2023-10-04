@@ -5,10 +5,8 @@ import {
   CardHeader,
   CardActions,
   Avatar,
-  IconButton,
   Typography,
   Button,
-  Collapse,
   TextField,
   Grid,
 } from '@mui/material';
@@ -29,14 +27,16 @@ const PostCard = ({ post }) => {
   };
 
   const handleCommentSend = () => {
-    // Create a new comment object
+    if (!commentText.trim()) {
+      return;
+    }
     const newComment = {
       user: {
         profilePicture: 'avatar_url_here',
-        name: 'Your Name', // Change to the actual user's name
+        name: 'Your Name', 
       },
       content: commentText,
-      timestamp: new Date().toLocaleString(), // You can format this as needed
+      timestamp: new Date().toLocaleString(),
     };
 
     // Add the new comment to the existing comments
@@ -50,7 +50,7 @@ const PostCard = ({ post }) => {
     <>
       <Card style={{ maxWidth: '850px', margin: '0 auto', marginBottom: '16px', marginTop:'50px' }}>
         <CardHeader
-          avatar={<Avatar aria-label="user-avatar" src={post.user.profilePicture} />}
+          avatar={<Avatar aria-label="user-avatar" />}
           title={post.user.name}
           subheader={post.timestamp}
         />
@@ -86,7 +86,7 @@ const PostCard = ({ post }) => {
         {comments.map((comment, index) => (
           <div key={index}>
             <CardHeader
-              avatar={<Avatar aria-label="comment-avatar" src={comment.user.profilePicture} />}
+              avatar={<Avatar aria-label="comment-avatar" />}
               title={comment.user.name}
               subheader={comment.timestamp}
             />
@@ -96,11 +96,10 @@ const PostCard = ({ post }) => {
           </div>
         ))}
 
-        <Collapse in={isCommenting}>
           <CardContent>
             <Grid container spacing={1} alignItems="flex-start">
               <Grid item xs={2} sm={1}>
-                <Avatar aria-label="comment-avatar" src={post.user.profilePicture} />
+                <Avatar aria-label="comment-avatar" />
               </Grid>
               <Grid item xs={10} sm={11}>
                 <Grid container spacing={1} alignItems="center">
@@ -129,7 +128,6 @@ const PostCard = ({ post }) => {
               </Grid>
             </Grid>
           </CardContent>
-        </Collapse>
       </Card>
       <HallOfFame />
     </>
