@@ -12,7 +12,7 @@ import Grid from '@mui/material/Grid';
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import Typography from '@mui/material/Typography';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
-import { Container } from '@mui/material';
+import { Container, CircularProgress  } from '@mui/material';
 import Cookies from 'js-cookie';
 import { useNavigate } from 'react-router-dom';
 import { useAppContext } from './Authenticate';
@@ -38,29 +38,62 @@ export default function SignInSide() {
 
   const { cookieValue, setCookieValue } = useAppContext();
   const navigate = useNavigate();
+  const [errorText, setErrorText] = React.useState('');
+  const [loading, setLoading] = React.useState(false);
 
 
-
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
     const data = new FormData(event.currentTarget);
-    if (!data.get('email') || !data.get('password')) {
-      return;
-    }
+
     console.log({
-      email: data.get('email'),
+      username: data.get('username'),
       password: data.get('password'),
     });
-    Cookies.set('JWTToken', 'de7fa7f88a87dh8jk8bnxz99978qweqdhdfqiqodqw7e6564545', { expires: 7 });
-    setCookieValue({'JWTToken': 'de7fa7f88a87dh8jk8bnxz99978qweqdhdfqiqodqw7e6564545'})
 
-    navigate('/')
+    // Cookies.set('JWTToken', 'de7fa7f88a87dh8jk8bnxz99978qweqdhdfqiqodqw7e6564545', { expires: 7 });
+    // setCookieValue({ 'JWTToken': 'de7fa7f88a87dh8jk8bnxz99978qweqdhdfqiqodqw7e6564545' })
+    // navigate('/')
+
+    const username = data.get('username');
+    const password = data.get('password');
+    setLoading(true);
+
+    try {
+      const response = await fetch('http://localhost:5555/auth/employee_login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ username, password }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data && data.access_token !== null) {
+          const token = data.access_token;
+          console.log('Token retrieved:', token);
+          Cookies.set('JWTToken', token);
+          setCookieValue({ "JWTToken": token });
+          navigate('/');
+        } else {
+          setErrorText('Invalid username or password.');
+        }
+      } else {
+        setErrorText('Invalid username or password.');
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      setErrorText('An error occurred. Please try again later.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <ThemeProvider theme={defaultTheme}>
       <Container>
-        <Grid container component="main" sx={{ height: '100vh', margin:'50px 0px' }}>
+        <Grid container component="main" sx={{ height: '100vh', margin: '50px 0px' }}>
           <CssBaseline />
           <Grid
             item
@@ -92,15 +125,15 @@ export default function SignInSide() {
               <Typography component="h1" variant="h5">
                 Sign in
               </Typography>
-              <Box component="form" noValidate onSubmit={handleSubmit} sx={{ mt: 1 }}>
+              <Box component="form" onSubmit={handleSubmit} sx={{ mt: 1 }}>
                 <TextField
                   margin="normal"
                   required
                   fullWidth
-                  id="email"
-                  label="Email Address"
-                  name="email"
-                  autoComplete="email"
+                  id="username"
+                  label="Username"
+                  name="username"
+                  autoComplete="username"
                   autoFocus
                 />
                 <TextField
@@ -122,9 +155,19 @@ export default function SignInSide() {
                   fullWidth
                   variant="contained"
                   sx={{ mt: 3, mb: 2 }}
+                  disabled={loading}
                 >
-                  Sign In
+                  {loading ? (
+                    <>
+                      Signing in <CircularProgress size={16} color="inherit" sx={{ml:'5px'}} />
+                    </>
+                  ) : (
+                    'Sign In'
+                  )}
                 </Button>
+                <Typography variant="body2" color="error">
+                  {errorText} {/* Display the error message */}
+                </Typography>
                 <Grid container>
                   <Grid item xs>
                     <Link href="#" variant="body2">

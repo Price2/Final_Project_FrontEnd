@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import AppBar from '@mui/material/AppBar';
 import Box from '@mui/material/Box';
 import Toolbar from '@mui/material/Toolbar';
@@ -27,6 +27,8 @@ function ResponsiveAppBar() {
   const [anchorElNav, setAnchorElNav] = React.useState(null);
   const [anchorElUser, setAnchorElUser] = React.useState(null);
   const { cookieValue, setCookieValue } = useAppContext();
+  const [isLoading, setIsLoading] = useState(false);
+
   const navigate = useNavigate();
 
 
@@ -46,13 +48,36 @@ function ResponsiveAppBar() {
     setAnchorElUser(null);
   };
 
-  const handleLogout = () => {
-    Cookies.remove('JWTToken');
-    setCookieValue({})
-    setAnchorElUser(null);
-    navigate("/");
-  }
+  // const handleLogout = () => {
+  //   Cookies.remove('JWTToken');
+  //   setCookieValue({})
+  //   setAnchorElUser(null);
+  //   navigate("/");
+  // }
 
+  const handleLogout = async () => {
+    setIsLoading(true);
+
+    try {
+      const response = await fetch('http://localhost:5555/auth/employee_logout', {
+        method: 'POST',
+      });
+
+      if (response.ok) {
+        Cookies.remove('JWTToken');
+        setCookieValue({})
+        setAnchorElUser(null);
+        navigate('/');
+      } else {
+        console.error('Logout failed:', response.statusText);
+      }
+    } catch (error) {
+      // Handle network or other errors
+      console.error('Logout error:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
   useEffect(() => {
     console.log('Cookie Value:', cookieValue);
 
@@ -179,13 +204,19 @@ function ResponsiveAppBar() {
                   onClose={handleCloseUserMenu}
                 >
                   {settings.map((setting) => (
-                    <MenuItem key={setting} onClick={setting === 'Logout' ? handleLogout : handleCloseUserMenu}>
-                      {setting === 'Profile' ? (
-                        <Link to="/profile" sx={{ textDecoration: "none" }}>
-                          <Typography textAlign="center">{setting}</Typography>
-                        </Link>
+                    <MenuItem key={setting} onClick={setting === 'Logout' && !isLoading ? handleLogout : handleCloseUserMenu}>
+                      {setting === 'Logout' && isLoading ? (
+                        <>
+                          Logging out... <span className="spinner"></span>
+                        </>
                       ) : (
-                        <Typography textAlign="center">{setting}</Typography>
+                        setting === 'Profile' ? (
+                          <Link to="/profile" sx={{ textDecoration: "none" }}>
+                            <Typography textAlign="center">{setting}</Typography>
+                          </Link>
+                        ) : (
+                          <Typography textAlign="center">{setting}</Typography>
+                        )
                       )}
                     </MenuItem>
                   ))}
@@ -194,10 +225,10 @@ function ResponsiveAppBar() {
               </>
               :
               <Stack direction="row" spacing={1}>
-                <Button variant="contained" href="/login" sx={{backgroundColor:"#0077ff"}}>
-                 <span>Login <LoginIcon/></span>
+                <Button variant="contained" href="/login" sx={{ backgroundColor: "#0077ff" }}>
+                  <span>Login <LoginIcon /></span>
                 </Button>
-                
+
               </Stack>}
           </Box>
         </Toolbar>
