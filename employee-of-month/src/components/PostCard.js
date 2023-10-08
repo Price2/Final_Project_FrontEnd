@@ -9,6 +9,7 @@ import {
   Button,
   TextField,
   Grid,
+  CircularProgress,
 } from '@mui/material';
 import { ThumbUp, ChatBubbleOutline, Share, Send } from '@mui/icons-material';
 import Certificate from './Certificate'
@@ -23,18 +24,33 @@ const PostCard = () => {
   const [commentText, setCommentText] = useState('');
   const [comments, setComments] = useState([]);
   const { cookieValue, setCookieValue } = useAppContext();
+  const [isLoading, setIsLoading] = useState(false);
+  const [isSendingComment, setIsSendingComment] = useState(false); // Initialize as false
 
 
 
   useEffect(() => {
-  console.log("cookie? ", (cookieValue && Object.keys(cookieValue).length === 0) );
-    
+    console.log("cookie? ", (cookieValue && Object.keys(cookieValue).length === 0));
+
     fetch('http://localhost:5555/collective/get_collective_data')
       .then((response) => response.json())
       .then((data) => {
-        setPosts([data['employee']]);
+
         console.log("data: ", data)
         console.log("data retrieved: ", [data['employee']])
+        const responseComments = data.comments;
+        const newComments = responseComments.map((comment) => ({
+          user: {
+            profilePicture: 'avatar_url_here',
+            name: comment.commentor,
+          },
+          content: comment.comment_detail,
+          timestamp: new Date().toLocaleString(),
+        }));
+        setPosts([data['employee']]);
+        setComments(newComments);
+        setIsLoading(false);
+
       })
       .catch((error) => {
         console.error('Error fetching data:', error);
@@ -50,33 +66,79 @@ const PostCard = () => {
     setCommentText(event.target.value);
   };
 
-  const handleCommentSend = () => {
+  const handleCommentSend = async () => {
     if (!commentText.trim()) {
       return;
     }
-    const newComment = {
-      user: {
-        profilePicture: 'avatar_url_here',
-        name: 'Your Name',
-      },
-      content: commentText,
-      timestamp: new Date().toLocaleString(),
-    };
+    setIsSendingComment(true);
 
-    // Add the new comment to the existing comments
-    setComments([...comments, newComment]);
+    // const newComment = {
+    //   user: {
+    //     profilePicture: 'avatar_url_here',
+    //     name: 'Your Name',
+    //   },
+    //   content: commentText,
+    //   timestamp: new Date().toLocaleString(),
+    // };
 
-    // Clear the comment text field
-    setCommentText('');
+    // setComments([...comments, newComment]);
+    // setCommentText('');
+
+
+
+    try {
+      console.log("Comment text: ", commentText)
+      // Actual POST request to post a comment
+      const response = await fetch('http://localhost:5555/eotmdetail/add_eotmdetail', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'access_token': `${cookieValue}`,
+        },
+        body: JSON.stringify({
+          comment_detail: commentText,
+          commentor: "daniel",
+        }),
+      });
+
+      if (response.ok) {
+        // If the request is successful, parse the response JSON (if applicable)
+        const responseData = await response.json();
+
+        console.log("response of comment: ", JSON.stringify(responseData));
+        const commentDetail = responseData.data.object.comment_detail;
+        const commentor = responseData.data.object.commentor;
+
+        const newComment = {
+          user: {
+            profilePicture: 'avatar_url_here',
+            name: commentor,
+          },
+          content: commentDetail,
+          timestamp: new Date().toLocaleString(),
+        };
+
+        setComments([...comments, newComment]);
+        setCommentText('');
+      } else {
+        console.error('Request failed:', response.status, response.statusText);
+      }
+
+      setIsSendingComment(false);
+    } catch (error) {
+      console.error('Error:', error);
+      // Handle errors here
+      setIsSendingComment(false); // Make sure to reset loading state in case of an error
+    }
   };
-
+  debugger;
   return (
     <>
       {posts.map((post) => {
         return (
           <Card key={post.id} style={{ maxWidth: '850px', margin: '0 auto', marginBottom: '16px', marginTop: '50px' }}>
             <CardHeader
-              sx={{textTransform: 'capitalize'}}
+              sx={{ textTransform: 'capitalize' }}
               avatar={<Avatar aria-label="user-avatar" />}
               title={post.first_name + " " + post.last_name}
             // subheader={post.timestamp}
@@ -114,11 +176,14 @@ const PostCard = () => {
               <div key={index}>
                 <CardHeader
                   avatar={<Avatar aria-label="comment-avatar" />}
-                  title={comment.user.name}
+                  title={<Typography variant="body1" fontWeight="bold" sx={{textTransform:'capitalize'}}>
+                    {comment.user.name}
+                  </Typography>}
                   subheader={comment.timestamp}
+                  sx={{ paddingBottom: '5px' }}
                 />
-                <CardContent sx={{ display: "flex", justifyContent: 'start', paddingTop: 0 }}>
-                  <Typography variant="body1" sx={{ marginLeft: 7.5, padding: 0 }}>{comment.content}</Typography>
+                <CardContent sx={{ display: "flex", justifyContent: 'start', paddingTop: 0, }}>
+                  <Typography variant="body1" sx={{ marginLeft: 7.5, padding: 0, fontSize:'0.9rem' }}>{comment.content}</Typography>
                 </CardContent>
               </div>
             ))}
@@ -148,7 +213,14 @@ const PostCard = () => {
                         startIcon={<Send />}
                         onClick={handleCommentSend}
                       >
-                        Send
+                        {isSendingComment ? (
+                          <>
+                            <CircularProgress size={16} color="inherit" />
+                            &nbsp; Sending...
+                          </>
+                        ) : (
+                          'Send'
+                        )}
                       </Button>
                     </Grid>
                   </Grid>
