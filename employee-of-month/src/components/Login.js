@@ -90,6 +90,14 @@ export default function SignInSide() {
     }
   };
 
+  React.useEffect(() => {
+    console.log("Login cookie: ", cookieValue)
+    if (Object.keys(cookieValue).length > 0) {
+      navigate("/")
+    }
+   
+  }, [cookieValue]);
+
   return (
     <ThemeProvider theme={defaultTheme}>
       <Container>

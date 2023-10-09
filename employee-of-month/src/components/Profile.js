@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Container, Grid, Card, CardContent, CardMedia, Typography, Button, Breadcrumbs, Link, List, ListItem, Divider, Box, LinearProgress } from '@mui/material';
 import {
     Facebook as FacebookIcon,
@@ -7,8 +7,12 @@ import {
     Twitter as TwitterIcon,
     Language as LanguageIcon,
 } from '@mui/icons-material';
+import { useAppContext } from './Authenticate';
+import { redirect } from "react-router-dom";
+import TextField from '@mui/material/TextField';
 
 import EditIcon from '@mui/icons-material/Edit';
+import jwt_decode from "jwt-decode";
 
 
 const listItemStyle = {
@@ -32,11 +36,12 @@ const styles = {
 };
 
 
-
 export default function ProfilePage() {
 
     const [isHovered, setIsHovered] = useState(false);
-
+    const { cookieValue, setCookieValue } = useAppContext();
+    const [currentEmployee, setCurrentEmployee] = useState([])
+    const [isEdit, setisEdit] = useState(false)
     const handleMouseEnter = () => {
         setIsHovered(true);
     };
@@ -46,6 +51,37 @@ export default function ProfilePage() {
     };
 
 
+
+    useEffect(() => {
+        if (Object.keys(cookieValue).length > 0) {
+            console.log("before decode token: ", cookieValue)
+            const decode = jwt_decode(cookieValue['JWTToken'])
+            console.log("decoded token: ", decode)
+            if (decode && decode?.id) {
+
+                fetch(`http://localhost:5555/employee/get_employee?user_id=${decode.id}`)
+                    .then((response) => response.json())
+                    .then((employee) => {
+
+                        console.log("data: ", employee)
+                        console.log("data retrieved: ", [employee.data.object])
+                        setCurrentEmployee([employee.data.object])
+
+                    })
+                    .catch((error) => {
+                        console.error('Error fetching data:', error);
+                    });
+            }
+        }
+        // else {
+        //     return redirect("/login");
+        // }
+
+    }, [cookieValue]);
+
+    const handleEdit = () => {
+        setisEdit(true)
+    }
     return (
         <section>
             <Container sx={{ py: 5 }}>
@@ -116,20 +152,34 @@ export default function ProfilePage() {
                                         </div>
                                     )}
                                 </div>
-                                <Typography variant="subtitle1" color="textSecondary" paragraph>
-                                    Full Stack Developer
-                                </Typography>
-                                <Typography variant="body2" color="textSecondary">
-                                    Bay Area, San Francisco, CA
-                                </Typography>
-                                <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
-                                    <Button variant="contained" color="primary">
-                                        Follow
-                                    </Button>
-                                    <Button variant="outlined" color="primary" sx={{ ml: 1 }}>
-                                        Edit
-                                    </Button>
-                                </Box>
+                                {currentEmployee.length > 0 ? currentEmployee.map((employee) => {
+                                    return (
+
+                                        <React.Fragment key={employee.id}>
+
+                                            {isEdit ? <TextField
+                                                id="standard-size-normal"
+                                                defaultValue={employee.job_title}
+                                                variant="standard"
+                                                inputProps={{min: 0, style: { textAlign: 'center' }}}
+                                            /> : <Typography variant="subtitle1" color="textSecondary" paragraph sx={{ textTransform: 'capitalize' }}>
+                                                {employee.job_title}
+                                            </Typography>}
+                                            <Typography variant="body2" color="textSecondary">
+
+                                            </Typography>
+                                            <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
+                                                <Button variant="contained" color="primary">
+                                                    Follow
+                                                </Button>
+                                                <Button variant="outlined" color="primary" onClick={handleEdit} sx={{ ml: 1 }}>
+                                                    Edit
+                                                </Button>
+                                            </Box>
+                                        </React.Fragment>
+                                    )
+                                })
+                                    : <></>}
                             </CardContent>
                         </Card>
 
@@ -191,60 +241,112 @@ export default function ProfilePage() {
                     <Grid item lg={8}>
                         <Card className="mb-4" sx={{ minHeight: '400px', display: 'flex' }}>
                             <CardContent sx={{ flex: '1', display: 'flex', flexDirection: 'column', justifyContent: "space-between" }}>
-                                <Grid container spacing={2}>
-                                    <Grid item xs={3}>
-                                        <Typography variant="subtitle1">Full Name</Typography>
-                                    </Grid>
-                                    <Grid item xs={9}>
-                                        <Typography variant="body2" color="textSecondary">
-                                            Johnatan Smith
-                                        </Typography>
-                                    </Grid>
-                                </Grid>
-                                <Divider sx={{ my: 2 }} />
-                                <Grid container spacing={2}>
-                                    <Grid item xs={3}>
-                                        <Typography variant="subtitle1">Email</Typography>
-                                    </Grid>
-                                    <Grid item xs={9}>
-                                        <Typography variant="body2" color="textSecondary">
-                                            example@example.com
-                                        </Typography>
-                                    </Grid>
-                                </Grid>
-                                <Divider sx={{ my: 2 }} />
-                                <Grid container spacing={2}>
-                                    <Grid item xs={3}>
-                                        <Typography variant="subtitle1">Phone</Typography>
-                                    </Grid>
-                                    <Grid item xs={9}>
-                                        <Typography variant="body2" color="textSecondary">
-                                            (097) 234-5678
-                                        </Typography>
-                                    </Grid>
-                                </Grid>
-                                <Divider sx={{ my: 2 }} />
-                                <Grid container spacing={2}>
-                                    <Grid item xs={3}>
-                                        <Typography variant="subtitle1">Mobile</Typography>
-                                    </Grid>
-                                    <Grid item xs={9}>
-                                        <Typography variant="body2" color="textSecondary">
-                                            (098) 765-4321
-                                        </Typography>
-                                    </Grid>
-                                </Grid>
-                                <Divider sx={{ my: 2 }} />
-                                <Grid container spacing={2}>
-                                    <Grid item xs={3}>
-                                        <Typography variant="subtitle1">Address</Typography>
-                                    </Grid>
-                                    <Grid item xs={9}>
-                                        <Typography variant="body2" color="textSecondary">
-                                            Bay Area, San Francisco, CA
-                                        </Typography>
-                                    </Grid>
-                                </Grid>
+                                {currentEmployee.length > 0 ?
+                                    currentEmployee.map((employee) => {
+                                        return (
+                                            <React.Fragment key={employee.id}>
+                                                <Grid key={employee.id} container spacing={2} alignItems={"center"}>
+                                                    <Grid item xs={3}>
+                                                        <Typography variant="subtitle1">First Name</Typography>
+                                                    </Grid>
+                                                    <Grid item xs={9}>
+                                                        {isEdit ? <TextField
+                                                            margin="normal"
+                                                            size="small"
+                                                            required
+                                                            fullWidth
+                                                            defaultValue={employee.first_name}
+                                                            id="first_name"
+                                                            name="first_name"
+                                                            autoFocus
+                                                        /> :
+                                                            <Typography variant="body2" color="textSecondary" sx={{ textTransform: 'capitalize' }}>
+                                                                {employee.first_name}
+                                                            </Typography>
+                                                        }
+                                                    </Grid>
+                                                </Grid>
+                                                <Divider sx={{ my: 2 }} />
+                                                <Grid container spacing={2} alignItems={"center"}>
+                                                    <Grid item xs={3}>
+                                                        <Typography variant="subtitle1">Last Name</Typography>
+                                                    </Grid>
+                                                    <Grid item xs={9}>
+                                                        {isEdit ? <TextField
+                                                            margin="normal"
+                                                            size="small"
+                                                            required
+                                                            fullWidth
+                                                            defaultValue={employee.last_name}
+                                                            id="last_name"
+                                                            name="last_name"
+                                                            autoFocus
+                                                        /> :
+                                                            <Typography variant="body2" color="textSecondary" sx={{ textTransform: 'capitalize' }}>
+                                                                {employee?.last_name ? employee.last_name : "None"}
+                                                            </Typography>}
+                                                    </Grid>
+                                                </Grid>
+                                                <Divider sx={{ my: 2 }} />
+
+                                                <Grid container spacing={2} alignItems={"center"}>
+                                                    <Grid item xs={3}>
+                                                        <Typography variant="subtitle1">Email</Typography>
+                                                    </Grid>
+                                                    <Grid item xs={9}>
+                                                        {isEdit ? <TextField
+                                                            margin="normal"
+                                                            size="small"
+                                                            required
+                                                            fullWidth
+                                                            defaultValue={employee.email}
+                                                            id="email"
+                                                            name="email"
+                                                            autoFocus
+                                                        /> :
+                                                            <Typography variant="body2" color="textSecondary" sx={{ textTransform: 'capitalize' }}>
+                                                                {employee.email ? employee.email : "Empty"}
+                                                            </Typography>}
+                                                    </Grid>
+                                                </Grid>
+                                                <Divider sx={{ my: 2 }} />
+                                                <Grid container spacing={2}>
+                                                    <Grid item xs={3}>
+                                                        <Typography variant="subtitle1">Phone</Typography>
+                                                    </Grid>
+                                                    <Grid item xs={9}>
+                                                        <Typography variant="body2" color="textSecondary" sx={{ textTransform: 'capitalize' }}>
+                                                            {isEdit ? "" : employee?.phone ? employee.phone : "None"}
+                                                        </Typography>
+                                                    </Grid>
+                                                </Grid>
+                                                <Divider sx={{ my: 2 }} />
+                                                <Grid container spacing={2}>
+                                                    <Grid item xs={3}>
+                                                        <Typography variant="subtitle1">Address</Typography>
+                                                    </Grid>
+                                                    <Grid item xs={9}>
+                                                        <Typography variant="body2" color="textSecondary" sx={{ textTransform: 'capitalize' }}>
+                                                            {isEdit ? "" : employee?.address ? employee.address : "None"}
+                                                        </Typography>
+                                                    </Grid>
+                                                    {isEdit ? <Grid container spacing={3} justifyContent={"flex-end"}>
+                                                        <Grid item xs={3} >
+                                                            <Button variant="contained" sx={{ marginRight: "5px" }} >
+                                                                Save
+                                                            </Button>
+                                                            <Button variant="outlined">
+                                                                Cancel
+                                                            </Button>
+                                                        </Grid>
+                                                    </Grid>
+                                                        : ""}
+                                                </Grid>
+                                            </React.Fragment>
+                                        )
+                                    })
+                                    : <></>}
+
                             </CardContent>
                         </Card>
 

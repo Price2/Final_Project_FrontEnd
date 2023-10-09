@@ -16,6 +16,8 @@ import Certificate from './Certificate'
 import HallOfFame from './HallOfFame';
 import Cookies from 'js-cookie';
 import { useAppContext } from './Authenticate';
+import jwt_decode from "jwt-decode";
+
 
 const PostCard = () => {
 
@@ -89,11 +91,13 @@ const PostCard = () => {
     try {
       console.log("Comment text: ", commentText)
       // Actual POST request to post a comment
+      const cookie = cookieValue
+      console.log("cookie before request: ", cookie)
       const response = await fetch('http://localhost:5555/eotmdetail/add_eotmdetail', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'access_token': `${cookieValue}`,
+          'access_token': cookie,
         },
         body: JSON.stringify({
           comment_detail: commentText,
@@ -131,7 +135,15 @@ const PostCard = () => {
       setIsSendingComment(false); // Make sure to reset loading state in case of an error
     }
   };
-  debugger;
+
+  // useEffect(() => {
+  //   if (Object.keys(cookieValue).length > 0)
+  //   {
+  //     const decode = jwt_decode(cookieValue)
+  //     console.log("decoded token: ", decode)
+  //    }
+    
+  // }, [cookieValue]);
   return (
     <>
       {posts.map((post) => {
