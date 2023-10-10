@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import PostCard from './components/PostCard';
 import Navbar from './components/Navbar'; // Import your Navbar component
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useNavigate, useLocation  } from "react-router-dom";
 import Footer from './components/Footer';
 import Profile from './components/Profile';
 import Login from './components/Login';
@@ -9,6 +9,7 @@ import NotFoundPage from './components/PageNotFound';
 import { TokenProvider } from './components/Authenticate';
 import "./index.css"
 import Unauthorized from './components/Unauthorized';
+import ResetPass from './components/ResetPass';
 import Cookies from 'js-cookie';
 
 
@@ -62,6 +63,11 @@ function App() {
               </>
             }>
             </Route>
+            <Route path="/reset_password" element={<>
+              <Navbar setuserFN={setFullName} />
+              <ResetPass/>
+              <Footer />
+            </>} />
 
             <Route path="*" element={<NotFoundPage />} />
 

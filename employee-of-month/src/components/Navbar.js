@@ -23,7 +23,7 @@ import { Divider } from '@mui/material';
 
 
 const pages = ['Home'];
-const settings = ['Profile', 'Dashboard', 'Logout'];
+const settings = ['Profile', 'Dashboard', 'Reset Password', 'Logout'];
 
 function ResponsiveAppBar({ setuserFN }) {
   const [anchorElNav, setAnchorElNav] = React.useState(null);
@@ -214,27 +214,31 @@ function ResponsiveAppBar({ setuserFN }) {
                   open={Boolean(anchorElUser)}
                   onClose={handleCloseUserMenu}
                 >
-                  <MenuItem onClick={handleCloseUserMenu} sx={{marginRight:'15px', textTransform:"capitalize"}}>
-                    <Avatar sx={{marginRight:"15px"}} /> {loggedUser.map((user)=>{return ( user.first_name + " " + user.last_name)})}
+                  <MenuItem onClick={handleCloseUserMenu} sx={{ marginRight: '15px', textTransform: "capitalize" }}>
+                    <Avatar sx={{ marginRight: "15px" }} /> {loggedUser.map((user) => { return (user.first_name + " " + user.last_name) })}
                   </MenuItem>
-                  <Divider/>
+                  <Divider />
+                  
                   {settings.map((setting) => (
                     <MenuItem key={setting} onClick={setting === 'Logout' && !isLoading ? handleLogout : handleCloseUserMenu}>
                       {setting === 'Logout' && isLoading ? (
                         <>
                           Logging out... <span className="spinner"></span>
                         </>
-                      ) : (
-                        setting === 'Profile' ? (
-                          <Link to="/profile" sx={{ textDecoration: "none" }}>
-                            <Typography textAlign="center">{setting}</Typography>
-                          </Link>
-                        ) : (
+                      ) : setting === 'Profile' ? (
+                        <Link to="/profile" sx={{ textDecoration: "none" }}>
                           <Typography textAlign="center">{setting}</Typography>
-                        )
+                        </Link>
+                      ) : setting === 'Reset Password' ? (
+                        <Link to="/reset_password" style={{ textDecoration: 'none', color:'inherit' }}>
+                          <Typography textAlign="center">{setting}</Typography>
+                        </Link>
+                      ) : (
+                        <Typography textAlign="center">{setting}</Typography>
                       )}
                     </MenuItem>
                   ))}
+
 
                 </Menu>
               </>

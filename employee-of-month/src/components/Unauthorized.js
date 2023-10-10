@@ -1,6 +1,8 @@
 // Unauthorized.js
 import React, { useEffect } from 'react';
 import { styled } from '@mui/material';
+import { useLocation, useNavigate } from 'react-router-dom';
+
 
 const GlobalStyles = styled('div')({
   '& html, & body': {
@@ -59,16 +61,23 @@ const Button = styled('a')({
 });
 
 const Unauthorized = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
 
   useEffect(() => {
-    // Set the background color programmatically
-    document.body.style.backgroundColor = '#342643'; // Replace with your desired background color
+    console.log(`location state: , ${location.state}, " location state from: ", ${location.state.from}`)
+    debugger;
+    if (!location.state || !location.state.from) {
+      navigate('/');
+    }
+    document.body.style.backgroundColor = '#342643';
 
-    // Clean up the style when the component unmounts
     return () => {
-      document.body.style.backgroundColor = ''; // Reset to default background color or remove this line
+      document.body.style.backgroundColor = '';
     };
-  }, []);
+  }, [location.state, navigate]);
+
+
   return (
     <GlobalStyles>
       <TextWrapper>

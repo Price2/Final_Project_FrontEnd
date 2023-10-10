@@ -28,6 +28,8 @@ const PostCard = ({ userFN }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [isSendingComment, setIsSendingComment] = useState(false);
   const [disableComments, setDisableComments] = useState(false);
+  const [disableLikes, setDisableLikes] = useState(false);
+
   const [loggedUserFN, setLoggedUserFN] = useState({});
   const [isLiked, setisLiked] = useState(0)
   const [prevIsLiked, setPrevIsLiked] = useState(0);
@@ -35,6 +37,16 @@ const PostCard = ({ userFN }) => {
 
   useEffect(() => {
     console.log("cookie? ", (cookieValue && Object.keys(cookieValue).length === 0));
+    if (Object.keys(cookieValue).length > 0) {
+      setDisableComments(false)
+      setDisableLikes(false)
+    }
+    else {
+      setDisableComments(true)
+      setDisableLikes(true)
+    }
+
+
 
     fetch('http://localhost:5555/collective/get_collective_data')
       .then((response) => response.json())
@@ -208,7 +220,7 @@ const PostCard = ({ userFN }) => {
               {isLiked  ?
                 <Grid item xs={4}>
                   <Typography sx={{ textAlign: 'center' }} variant="body2" color="gray">
-                   You and {post.number_of_likes-1} others Liked this post
+                    {post.number_of_likes === 0 ? "You're the first to like this post": `You and ${post.number_of_likes-1} others Liked this post`}
                   </Typography>
                 </Grid> :
                 <Grid item xs={4}>
@@ -223,9 +235,9 @@ const PostCard = ({ userFN }) => {
               <Grid container spacing={1} justifyContent="center">
                 <Grid item xs={4}>
                   {isLiked ?
-                    <Button variant="outlined" fullWidth startIcon={<ThumbUp />} onClick={handleLike}>
+                    <Button variant="outlined" fullWidth startIcon={<ThumbUp />} onClick={handleLike} disabled={disableLikes}>
                       Like
-                    </Button> : <Button variant="outlined" fullWidth startIcon={<ThumbUpOffAltIcon />} onClick={handleLike} sx={{ color: 'gray' }}>
+                    </Button> : <Button variant="outlined" fullWidth startIcon={<ThumbUpOffAltIcon />} onClick={handleLike} sx={{ color: 'gray' }} disabled={disableLikes}>
                       Like
                     </Button>
                   }
