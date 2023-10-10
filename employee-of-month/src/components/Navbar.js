@@ -18,16 +18,19 @@ import { useAppContext } from './Authenticate';
 import Stack from '@mui/material/Stack';
 import LoginIcon from '@mui/icons-material/Login';
 import Cookies from 'js-cookie';
+import jwt_decode from "jwt-decode";
+import { Divider } from '@mui/material';
 
 
 const pages = ['Home'];
 const settings = ['Profile', 'Dashboard', 'Logout'];
 
-function ResponsiveAppBar() {
+function ResponsiveAppBar({ setuserFN }) {
   const [anchorElNav, setAnchorElNav] = React.useState(null);
   const [anchorElUser, setAnchorElUser] = React.useState(null);
   const { cookieValue, setCookieValue } = useAppContext();
   const [isLoading, setIsLoading] = useState(false);
+  const [loggedUser, setLoggedUser] = useState([]);
 
   const navigate = useNavigate();
 
@@ -48,12 +51,6 @@ function ResponsiveAppBar() {
     setAnchorElUser(null);
   };
 
-  // const handleLogout = () => {
-  //   Cookies.remove('JWTToken');
-  //   setCookieValue({})
-  //   setAnchorElUser(null);
-  //   navigate("/");
-  // }
 
   const handleLogout = async () => {
     setIsLoading(true);
@@ -72,16 +69,30 @@ function ResponsiveAppBar() {
         console.error('Logout failed:', response.statusText);
       }
     } catch (error) {
-      // Handle network or other errors
       console.error('Logout error:', error);
     } finally {
       setIsLoading(false);
     }
   };
   useEffect(() => {
-    console.log('Cookie Value:', cookieValue);
+    console.log("Cookie Value: ", cookieValue)
+    if (Object.keys(cookieValue).length !== 0) {
+      const decode = jwt_decode(cookieValue?.JWTToken)
+      fetch(`http://localhost:5555/employee/get_employee?user_id=${decode?.id}`, {
+        method: 'GET',
+      })
+        .then((response) => response.json())
+        .then((user) => {
+          console.log("Data retrieved from user: ", user.data.object)
+          setLoggedUser([user?.data?.object])
+          setuserFN({ first_name: user.data.object.first_name, last_name: user.data.object.last_name })
+          return;
+        })
+      console.log("logged user: ", loggedUser)
 
-  }, [cookieValue])
+    }
+
+  }, [cookieValue]);
 
 
   return (
@@ -203,6 +214,10 @@ function ResponsiveAppBar() {
                   open={Boolean(anchorElUser)}
                   onClose={handleCloseUserMenu}
                 >
+                  <MenuItem onClick={handleCloseUserMenu} sx={{marginRight:'15px', textTransform:"capitalize"}}>
+                    <Avatar sx={{marginRight:"15px"}} /> {loggedUser.map((user)=>{return ( user.first_name + " " + user.last_name)})}
+                  </MenuItem>
+                  <Divider/>
                   {settings.map((setting) => (
                     <MenuItem key={setting} onClick={setting === 'Logout' && !isLoading ? handleLogout : handleCloseUserMenu}>
                       {setting === 'Logout' && isLoading ? (

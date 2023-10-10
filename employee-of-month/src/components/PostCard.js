@@ -16,10 +16,9 @@ import Certificate from './Certificate'
 import HallOfFame from './HallOfFame';
 import Cookies from 'js-cookie';
 import { useAppContext } from './Authenticate';
-import jwt_decode from "jwt-decode";
+import ThumbUpOffAltIcon from '@mui/icons-material/ThumbUpOffAlt';
 
-
-const PostCard = () => {
+const PostCard = ({ userFN }) => {
 
   const [posts, setPosts] = useState([]);
   const [isCommenting, setCommenting] = useState(false);
@@ -27,9 +26,12 @@ const PostCard = () => {
   const [comments, setComments] = useState([]);
   const { cookieValue, setCookieValue } = useAppContext();
   const [isLoading, setIsLoading] = useState(false);
-  const [isSendingComment, setIsSendingComment] = useState(false); // Initialize as false
-
-
+  const [isSendingComment, setIsSendingComment] = useState(false);
+  const [disableComments, setDisableComments] = useState(false);
+  const [loggedUserFN, setLoggedUserFN] = useState({});
+  const [isLiked, setisLiked] = useState(0)
+  const [prevIsLiked, setPrevIsLiked] = useState(0);
+  const [postNumOfLikes, setPostNumOfLikes] = useState(0)
 
   useEffect(() => {
     console.log("cookie? ", (cookieValue && Object.keys(cookieValue).length === 0));
@@ -74,24 +76,10 @@ const PostCard = () => {
     }
     setIsSendingComment(true);
 
-    // const newComment = {
-    //   user: {
-    //     profilePicture: 'avatar_url_here',
-    //     name: 'Your Name',
-    //   },
-    //   content: commentText,
-    //   timestamp: new Date().toLocaleString(),
-    // };
-
-    // setComments([...comments, newComment]);
-    // setCommentText('');
-
-
-
     try {
       console.log("Comment text: ", commentText)
-      // Actual POST request to post a comment
-      const cookie = cookieValue
+      const cookie = cookieValue?.JWTToken
+      const user_fn = (loggedUserFN?.first_name || "Anonymous") + " " + (loggedUserFN?.last_name || "User");
       console.log("cookie before request: ", cookie)
       const response = await fetch('http://localhost:5555/eotmdetail/add_eotmdetail', {
         method: 'POST',
@@ -101,12 +89,11 @@ const PostCard = () => {
         },
         body: JSON.stringify({
           comment_detail: commentText,
-          commentor: "daniel",
+          commentor: user_fn,
         }),
       });
 
       if (response.ok) {
-        // If the request is successful, parse the response JSON (if applicable)
         const responseData = await response.json();
 
         console.log("response of comment: ", JSON.stringify(responseData));
@@ -131,19 +118,76 @@ const PostCard = () => {
       setIsSendingComment(false);
     } catch (error) {
       console.error('Error:', error);
-      // Handle errors here
-      setIsSendingComment(false); // Make sure to reset loading state in case of an error
+      setIsSendingComment(false);
     }
   };
 
-  // useEffect(() => {
-  //   if (Object.keys(cookieValue).length > 0)
-  //   {
-  //     const decode = jwt_decode(cookieValue)
-  //     console.log("decoded token: ", decode)
-  //    }
-    
-  // }, [cookieValue]);
+  useEffect(() => {
+    if (Object.keys(userFN).length > 0) {
+      setLoggedUserFN(userFN)
+      console.log("Am i being set?")
+    }
+  }, [userFN]);
+
+
+  const handleLike = () => {
+    console.log("LIKED? ", isLiked)
+    setisLiked((prevIsLiked) => (prevIsLiked === 1 ? 0 : 1));
+
+  }
+
+  useEffect(() => {
+    const cookie = cookieValue?.JWTToken
+    if (isLiked === 1 && prevIsLiked !== 1) {
+      console.log("LIKED increment? ", isLiked)
+      fetch(`http://localhost:5555/employee/patch_like_count?query_mode=increment`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            "access_token": cookie
+          },
+        }
+      )
+        .then((response) => response.json())
+        .then((likeResponse) => {
+          setPosts([likeResponse.data.object])
+          console.log("Patch likes response increment: ", likeResponse)
+
+        })
+        .catch((error) => {
+          console.error('Error fetching data:', error);
+        });
+
+    }
+    if (isLiked === 0 && prevIsLiked !== 0) {
+      console.log("LIKED decrement? ", isLiked)
+
+      fetch(`http://localhost:5555/employee/patch_like_count?query_mode=decrement`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            "access_token": cookie
+          },
+        }
+      )
+        .then((response) => response.json())
+        .then((likeResponse) => {
+          setPosts([likeResponse.data.object])
+          console.log("Patch likes response decrement: ", likeResponse)
+          console.log("Patch likes response decrement array: ", [likeResponse.data.object])
+
+        })
+        .catch((error) => {
+          console.error('Error fetching data:', error);
+        });
+    }
+    setPrevIsLiked(isLiked);
+
+  }, [isLiked]);
+
+  console.log("Testing likes ", posts.map((post) =>{return(post.number_of_likes)}) )
   return (
     <>
       {posts.map((post) => {
@@ -159,12 +203,32 @@ const PostCard = () => {
               <Certificate data={post} />
             </CardContent>
 
+
+            <Grid container spacing={1} justifyContent={"left"}>
+              {isLiked  ?
+                <Grid item xs={4}>
+                  <Typography sx={{ textAlign: 'center' }} variant="body2" color="gray">
+                   You and {post.number_of_likes-1} others Liked this post
+                  </Typography>
+                </Grid> :
+                <Grid item xs={4}>
+                <Typography sx={{ textAlign: 'center' }} variant="body2" color="gray">
+                  {post.number_of_likes} Liked this post
+                </Typography>
+              </Grid>
+              }
+            </Grid>
+
             <CardActions disableSpacing>
               <Grid container spacing={1} justifyContent="center">
                 <Grid item xs={4}>
-                  <Button variant="outlined" fullWidth startIcon={<ThumbUp />}>
-                    Like
-                  </Button>
+                  {isLiked ?
+                    <Button variant="outlined" fullWidth startIcon={<ThumbUp />} onClick={handleLike}>
+                      Like
+                    </Button> : <Button variant="outlined" fullWidth startIcon={<ThumbUpOffAltIcon />} onClick={handleLike} sx={{ color: 'gray' }}>
+                      Like
+                    </Button>
+                  }
                 </Grid>
                 <Grid item xs={4}>
                   <Button
@@ -188,14 +252,14 @@ const PostCard = () => {
               <div key={index}>
                 <CardHeader
                   avatar={<Avatar aria-label="comment-avatar" />}
-                  title={<Typography variant="body1" fontWeight="bold" sx={{textTransform:'capitalize'}}>
+                  title={<Typography variant="body1" fontWeight="bold" sx={{ textTransform: 'capitalize' }}>
                     {comment.user.name}
                   </Typography>}
                   subheader={comment.timestamp}
                   sx={{ paddingBottom: '5px' }}
                 />
                 <CardContent sx={{ display: "flex", justifyContent: 'start', paddingTop: 0, }}>
-                  <Typography variant="body1" sx={{ marginLeft: 7.5, padding: 0, fontSize:'0.9rem' }}>{comment.content}</Typography>
+                  <Typography variant="body1" sx={{ marginLeft: 7.5, padding: 0, fontSize: '0.9rem' }}>{comment.content}</Typography>
                 </CardContent>
               </div>
             ))}
@@ -224,6 +288,7 @@ const PostCard = () => {
                         size="small"
                         startIcon={<Send />}
                         onClick={handleCommentSend}
+                        disabled={disableComments}
                       >
                         {isSendingComment ? (
                           <>

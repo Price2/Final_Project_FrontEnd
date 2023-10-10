@@ -10,6 +10,7 @@ import {
 import { useAppContext } from './Authenticate';
 import { redirect } from "react-router-dom";
 import TextField from '@mui/material/TextField';
+import Alert from '@mui/material/Alert';
 
 import EditIcon from '@mui/icons-material/Edit';
 import jwt_decode from "jwt-decode";
@@ -25,13 +26,13 @@ const listItemStyle = {
 const hrStyle = {
     my: 2,
     borderColor: 'gray',
-    borderWidth: '1px', // Increase the border width to make the HR thicker
+    borderWidth: '1px',
 };
 
 const styles = {
     progressBar: {
-        height: '8px', // Adjust the height of the progress bar
-        borderRadius: '5px', // Add rounded corners
+        height: '8px',
+        borderRadius: '5px',
     },
 };
 
@@ -42,6 +43,10 @@ export default function ProfilePage() {
     const { cookieValue, setCookieValue } = useAppContext();
     const [currentEmployee, setCurrentEmployee] = useState([])
     const [isEdit, setisEdit] = useState(false)
+    const [formData, setFormData] = useState({})
+    const [editStatus, setEditStatus] = useState({ success: false, error: false })
+
+
     const handleMouseEnter = () => {
         setIsHovered(true);
     };
@@ -66,6 +71,7 @@ export default function ProfilePage() {
                         console.log("data: ", employee)
                         console.log("data retrieved: ", [employee.data.object])
                         setCurrentEmployee([employee.data.object])
+                        setFormData(employee.data.object)
 
                     })
                     .catch((error) => {
@@ -73,22 +79,66 @@ export default function ProfilePage() {
                     });
             }
         }
-        // else {
-        //     return redirect("/login");
-        // }
 
     }, [cookieValue]);
 
     const handleEdit = () => {
         setisEdit(true)
+        setEditStatus({ ...editStatus, success: false })
     }
+
+    const handleCloseEdit = () => {
+        setisEdit(false)
+    }
+
+    const handleSave = () => {
+        console.log("Logging data: ", formData);
+        
+        try {
+
+            fetch(
+                `http://localhost:5555/employee/update_employee?user_id=${currentEmployee[0].id}`,
+                {
+                    method: "PUT",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify(formData),
+                }
+            )
+                .then((response) => {
+                    if (response.ok) {
+                        return response.json();
+                    } else {
+                        console.error("Request failed:", response.status, response.statusText);
+                        throw new Error("Request failed");
+                    }
+                })
+                .then((responseData) => {
+                    console.log("updated employee : ", JSON.stringify(responseData));
+                    setCurrentEmployee([responseData.data.object])
+                    setFormData(responseData.data.object)
+                    setEditStatus({ ...editStatus, success: true, error: false });
+                    setisEdit(false)
+                })
+                .catch((error) => {
+                    console.error("Error:", error);
+                    setEditStatus({ ...editStatus, success: false, error: true });
+                });
+        } catch (error) {
+            console.error("Error:", error);
+        }
+    };
+
+
+
     return (
         <section>
             <Container sx={{ py: 5 }}>
                 <Grid container>
                     <Grid item xs={12}>
                         <Breadcrumbs className="bg-light rounded-3 p-3 mb-4">
-                            <Link href='#'>Home</Link>
+                            <Link href='/'>Home</Link>
                             <Typography>User Profile</Typography>
                         </Breadcrumbs>
                     </Grid>
@@ -160,8 +210,9 @@ export default function ProfilePage() {
                                             {isEdit ? <TextField
                                                 id="standard-size-normal"
                                                 defaultValue={employee.job_title}
+                                                onChange={(e) => setFormData({ ...formData, job_title: e.target.value })}
                                                 variant="standard"
-                                                inputProps={{min: 0, style: { textAlign: 'center' }}}
+                                                inputProps={{ min: 0, style: { textAlign: 'center' } }}
                                             /> : <Typography variant="subtitle1" color="textSecondary" paragraph sx={{ textTransform: 'capitalize' }}>
                                                 {employee.job_title}
                                             </Typography>}
@@ -239,6 +290,8 @@ export default function ProfilePage() {
 
                     </Grid>
                     <Grid item lg={8}>
+                        {editStatus.success && <Alert severity="success" sx={{ marginBottom: "5px    " }}>Successfully updated profile</Alert>}
+                        {editStatus.error && <Alert severity="error">Error while updating profile, please re-check your information and try again!</Alert>}
                         <Card className="mb-4" sx={{ minHeight: '400px', display: 'flex' }}>
                             <CardContent sx={{ flex: '1', display: 'flex', flexDirection: 'column', justifyContent: "space-between" }}>
                                 {currentEmployee.length > 0 ?
@@ -256,6 +309,7 @@ export default function ProfilePage() {
                                                             required
                                                             fullWidth
                                                             defaultValue={employee.first_name}
+                                                            onChange={(e) => setFormData({ ...formData, first_name: e.target.value })}
                                                             id="first_name"
                                                             name="first_name"
                                                             autoFocus
@@ -278,6 +332,7 @@ export default function ProfilePage() {
                                                             required
                                                             fullWidth
                                                             defaultValue={employee.last_name}
+                                                            onChange={(e) => setFormData({ ...formData, last_name: e.target.value })}
                                                             id="last_name"
                                                             name="last_name"
                                                             autoFocus
@@ -300,6 +355,7 @@ export default function ProfilePage() {
                                                             required
                                                             fullWidth
                                                             defaultValue={employee.email}
+                                                            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                                                             id="email"
                                                             name="email"
                                                             autoFocus
@@ -332,10 +388,10 @@ export default function ProfilePage() {
                                                     </Grid>
                                                     {isEdit ? <Grid container spacing={3} justifyContent={"flex-end"}>
                                                         <Grid item xs={3} >
-                                                            <Button variant="contained" sx={{ marginRight: "5px" }} >
+                                                            <Button variant="contained" sx={{ marginRight: "5px" }} onClick={handleSave} >
                                                                 Save
                                                             </Button>
-                                                            <Button variant="outlined">
+                                                            <Button variant="outlined" onClick={handleCloseEdit}>
                                                                 Cancel
                                                             </Button>
                                                         </Grid>
