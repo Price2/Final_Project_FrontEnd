@@ -145,7 +145,7 @@ function HallOfFame() {
                     {member.job_title}
                   </Typography>
                   <Typography sx={{ marginTop: '25px' }}>
-                    Testing asjdiasfijaij
+                    {member.job_description}
                   </Typography>
                 </CardContent>
               </Card>

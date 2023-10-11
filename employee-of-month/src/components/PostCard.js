@@ -37,14 +37,7 @@ const PostCard = ({ userFN }) => {
 
   useEffect(() => {
     console.log("cookie? ", (cookieValue && Object.keys(cookieValue).length === 0));
-    if (Object.keys(cookieValue).length > 0) {
-      setDisableComments(false)
-      setDisableLikes(false)
-    }
-    else {
-      setDisableComments(true)
-      setDisableLikes(true)
-    }
+  
 
 
 
@@ -72,6 +65,18 @@ const PostCard = ({ userFN }) => {
         console.error('Error fetching data:', error);
       });
   }, [])
+
+  useEffect(() => {
+    if (Object.keys(cookieValue).length > 0) {
+      setDisableComments(false)
+      setDisableLikes(false)
+    }
+    else {
+      setDisableComments(true)
+      setDisableLikes(true)
+    }
+  }, [cookieValue])
+  
 
 
   const handleCommentClick = () => {
@@ -220,7 +225,7 @@ const PostCard = ({ userFN }) => {
               {isLiked  ?
                 <Grid item xs={4}>
                   <Typography sx={{ textAlign: 'center' }} variant="body2" color="gray">
-                    {post.number_of_likes === 0 ? "You're the first to like this post": `You and ${post.number_of_likes-1} others Liked this post`}
+                    {post.number_of_likes === 0 || post.number_of_likes === 1 ? "You're the first to like this post": `You and ${post.number_of_likes-1} others Liked this post`}
                   </Typography>
                 </Grid> :
                 <Grid item xs={4}>
